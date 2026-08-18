@@ -604,60 +604,72 @@
     syncText.textContent = msg;
   }
 
-  // Gist API
+  // 点击同步状态栏手动刷新
+  syncBar.style.cursor = 'pointer';
+  syncBar.title = '点击手动刷新';
+  syncBar.addEventListener('click', () => {
+    fetchFromGist().then(remote => {
+      if (remote) { data = remote; renderCalendar(); renderEvents(); }
+    });
+  });
+
+  // Gist API — 拉取（始终以远端为准）
   async function fetchFromGist() {
     const { token, gistId } = getCfg();
-    if (!token || !gistId) { setSyncStatus('', '未同步'); return null; }
+    if (!token || !gistId) { setSyncStatus('', '未配置同步'); return null; }
     setSyncStatus('syncing', '同步中…');
     try {
       const res = await fetch(`https://api.github.com/gists/${gistId}`, {
         headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github+json' }
       });
-      if (!res.ok) throw new Error(res.status);
+      if (res.status === 401) { setSyncStatus('error', 'Token 无效，请重新配置'); return null; }
+      if (res.status === 404) { setSyncStatus('error', 'Gist ID 不存在'); return null; }
+      if (!res.ok) { setSyncStatus('error', `同步失败 (${res.status})`); return null; }
       const gist   = await res.json();
       const raw    = gist.files[GIST_FILE]?.content || '{}';
       const remote = JSON.parse(raw);
+      // 以远端为权威数据，覆盖本地
       localStorage.setItem(STORAGE_KEY, JSON.stringify(remote));
-      setSyncStatus('ok', '已同步 ✓');
+      setSyncStatus('ok', '已同步 ✓ 点击刷新');
       return remote;
-    } catch {
-      setSyncStatus('error', '同步失败');
+    } catch (e) {
+      setSyncStatus('error', '网络错误，点击重试');
       return null;
     }
   }
 
-  let pushTimer = null;
-  function pushToGist(dataObj) {
+  // Gist API — 推送（立即写入，不防抖，确保不丢数据）
+  async function pushToGist(dataObj) {
     const { token, gistId } = getCfg();
     if (!token || !gistId) return;
-    clearTimeout(pushTimer);
     setSyncStatus('syncing', '保存中…');
-    pushTimer = setTimeout(async () => {
-      try {
-        const res = await fetch(`https://api.github.com/gists/${gistId}`, {
-          method: 'PATCH',
-          headers: {
-            Authorization: `token ${token}`,
-            Accept: 'application/vnd.github+json',
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ files: { [GIST_FILE]: { content: JSON.stringify(dataObj) } } })
-        });
-        if (!res.ok) throw new Error(res.status);
-        setSyncStatus('ok', '已保存 ✓');
-      } catch {
-        setSyncStatus('error', '保存失败');
-      }
-    }, 600);
+    try {
+      const res = await fetch(`https://api.github.com/gists/${gistId}`, {
+        method: 'PATCH',
+        headers: {
+          Authorization: `token ${token}`,
+          Accept: 'application/vnd.github+json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ files: { [GIST_FILE]: { content: JSON.stringify(dataObj) } } })
+      });
+      if (res.status === 401) { setSyncStatus('error', 'Token 无效'); return; }
+      if (!res.ok) { setSyncStatus('error', `保存失败 (${res.status})`); return; }
+      setSyncStatus('ok', '已保存 ✓ 点击刷新');
+    } catch {
+      setSyncStatus('error', '网络错误，数据仅在本地');
+    }
   }
 
   function loadLocal() {
     try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }
     catch { return {}; }
   }
-  function saveData(dataObj) {
+
+  // 保存：先写本地，再推送远端
+  async function saveData(dataObj) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(dataObj));
-    pushToGist(dataObj);
+    await pushToGist(dataObj);
   }
 
   function dateKey(year, month, day) {
@@ -668,7 +680,9 @@
   let curYear  = today.getFullYear();
   let curMonth = today.getMonth();
   let selectedDate = dateKey(today.getFullYear(), today.getMonth(), today.getDate());
+  // 先用本地数据显示，等远端拉取后覆盖
   let data = loadLocal();
+  let syncReady = false; // 远端数据是否已加载
 
   // ===== 日历渲染（周一=0偏移）=====
   function renderCalendar() {
@@ -815,12 +829,13 @@
       editInput.focus(); editInput.select();
     });
 
-    const doSave = () => {
+    const doSave = async () => {
       const newVal = editInput.value.trim();
       if (!newVal) { alert('事件内容不能为空哦'); return; }
       if (!data[selectedDate]) data[selectedDate] = [];
       data[selectedDate][idx] = newVal;
-      saveData(data); renderCalendar(); renderEvents();
+      renderCalendar(); renderEvents();
+      await saveData(data);
     };
 
     saveBtn.addEventListener('click', doSave);
@@ -837,11 +852,12 @@
       saveBtn.style.display = 'none'; cancelBtn.style.display = 'none';
     });
 
-    delBtn.addEventListener('click', () => {
+    delBtn.addEventListener('click', async () => {
       if (!data[selectedDate]) return;
       data[selectedDate].splice(idx, 1);
       if (data[selectedDate].length === 0) delete data[selectedDate];
-      saveData(data); renderCalendar(); renderEvents();
+      renderCalendar(); renderEvents();
+      await saveData(data);
     });
 
     li.appendChild(idxSpan); li.appendChild(textSpan);
@@ -851,15 +867,17 @@
     return li;
   }
 
-  function addEvent() {
+  async function addEvent() {
     const input = document.getElementById('newEventInput');
     const text  = input.value.trim();
     if (!text) return;
     if (!data[selectedDate]) data[selectedDate] = [];
     if (data[selectedDate].length >= 5) return;
     data[selectedDate].push(text);
-    saveData(data); input.value = '';
-    renderCalendar(); renderEvents(); input.focus();
+    input.value = '';
+    renderCalendar(); renderEvents();
+    await saveData(data);
+    input.focus();
   }
 
   document.getElementById('addEventBtn').addEventListener('click', addEvent);
@@ -876,14 +894,32 @@
     renderCalendar();
   });
 
+  // 先用本地缓存快速渲染
   renderCalendar();
   renderEvents();
 
+  // 若已配置，立即从远端拉取最新数据（以远端为准）
   if (cfg.token && cfg.gistId) {
     fetchFromGist().then(remote => {
-      if (remote) { data = remote; renderCalendar(); renderEvents(); }
+      if (remote) {
+        data = remote;
+        renderCalendar();
+        renderEvents();
+      }
     });
   }
+
+  // 页面重新获得焦点时（切换标签页/回到页面）自动刷新远端
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      const c = getCfg();
+      if (c.token && c.gistId) {
+        fetchFromGist().then(remote => {
+          if (remote) { data = remote; renderCalendar(); renderEvents(); }
+        });
+      }
+    }
+  });
 </script>
 </body>
 </html>
