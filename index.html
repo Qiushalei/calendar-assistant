@@ -7,13 +7,12 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
-    /* ===== 蓝白格纹背景 ===== */
     body {
       font-family: "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", Arial, sans-serif;
-      min-height: 100dvh;
+      height: 100dvh;
       display: flex;
       flex-direction: column;
-      overflow-x: hidden;
+      overflow: hidden;
       background-color: #d6eef8;
       background-image:
         linear-gradient(rgba(255,255,255,0.55) 1px, transparent 1px),
@@ -29,42 +28,18 @@
       align-items: center;
       justify-content: space-between;
       box-shadow: 0 2px 10px rgba(100,180,230,0.3);
-      position: sticky;
-      top: 0;
-      z-index: 10;
+      flex-shrink: 0;
       border-bottom: 2px solid rgba(255,255,255,0.7);
     }
-
-    .app-title {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .header-deco {
-      font-size: 13px;
-      display: flex;
-      gap: 4px;
-      align-items: center;
-    }
-
-    .app-title h1 {
-      font-size: 17px;
-      font-weight: 800;
-      color: #4a90b8;
-      letter-spacing: 1px;
-    }
+    .app-title { display: flex; align-items: center; gap: 6px; }
+    .app-title h1 { font-size: 17px; font-weight: 800; color: #4a90b8; letter-spacing: 1px; }
+    .header-decos { display: flex; gap: 2px; font-size: 16px; }
 
     #syncBar {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      font-size: 10px;
-      color: #7ab8d4;
+      display: flex; align-items: center; gap: 4px;
+      font-size: 10px; color: #7ab8d4; cursor: pointer;
     }
-    #syncBar .sdot {
-      width: 6px; height: 6px; border-radius: 50%; background: #b0d8ec; flex-shrink: 0;
-    }
+    #syncBar .sdot { width: 6px; height: 6px; border-radius: 50%; background: #b0d8ec; flex-shrink: 0; }
     #syncBar.syncing .sdot { background: #f9c74f; animation: pulse 1s infinite; }
     #syncBar.ok .sdot { background: #90d468; }
     #syncBar.error .sdot { background: #f4827a; }
@@ -73,107 +48,72 @@
     /* ===== 月份导航 ===== */
     .month-nav {
       background: rgba(255,255,255,0.6);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 8px 16px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 6px 16px;
       border-bottom: 1.5px solid rgba(168,216,240,0.5);
+      flex-shrink: 0;
     }
-
     .month-nav button {
-      background: #a8d8f0;
-      border: 2px solid #fff;
-      border-radius: 50%;
-      width: 34px; height: 34px;
-      font-size: 20px;
-      color: #4a90b8;
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      font-weight: 700;
-      box-shadow: 0 2px 6px rgba(100,180,230,0.3);
+      background: #a8d8f0; border: 2px solid #fff; border-radius: 50%;
+      width: 32px; height: 32px; font-size: 20px; color: #4a90b8;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      font-weight: 700; box-shadow: 0 2px 6px rgba(100,180,230,0.3);
       transition: transform 0.15s;
     }
     .month-nav button:active { transform: scale(0.92); }
-
     .month-title {
-      font-size: 16px;
-      font-weight: 800;
-      color: #4a90b8;
-      display: flex;
-      align-items: center;
-      gap: 6px;
+      font-size: 15px; font-weight: 800; color: #4a90b8;
+      display: flex; align-items: center; gap: 5px;
     }
 
-    /* ===== 星期行（周一开始）===== */
+    /* ===== 星期行 ===== */
     .weekdays {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
+      display: grid; grid-template-columns: repeat(7, 1fr);
       background: rgba(168,216,240,0.35);
-      padding: 5px 0 3px;
+      padding: 4px 0 3px;
       border-bottom: 1px solid rgba(168,216,240,0.4);
+      flex-shrink: 0;
     }
     .weekdays span {
-      text-align: center;
-      font-size: 11px;
-      font-weight: 700;
-      color: #4a90b8;
-      padding: 2px 0;
+      text-align: center; font-size: 11px; font-weight: 700;
+      color: #4a90b8; padding: 2px 0;
     }
-    /* 周六周日特殊色 */
     .weekdays span.wkend { color: #f4827a; }
 
-    /* ===== 日期网格 ===== */
+    /* ===== 日期网格（铺满剩余空间）===== */
     .days-grid {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
+      grid-auto-rows: 1fr;
       gap: 1px;
       background: rgba(168,216,240,0.3);
       flex: 1;
+      min-height: 0;
     }
 
     .day-cell {
       background: rgba(255,255,255,0.75);
-      min-height: 76px;
-      display: flex;
-      flex-direction: column;
+      display: flex; flex-direction: column;
       align-items: stretch;
       cursor: pointer;
-      transition: background 0.15s;
       overflow: hidden;
       position: relative;
+      transition: background 0.12s;
     }
-    .day-cell:active { background: rgba(168,216,240,0.4); }
-    .day-cell.empty {
-      background: rgba(255,255,255,0.3);
-      cursor: default;
-    }
+    .day-cell:active { background: rgba(168,216,240,0.45); }
+    .day-cell.empty { background: rgba(255,255,255,0.28); cursor: default; }
 
     /* 日期数字 */
-    .day-num-wrap {
-      display: flex;
-      justify-content: center;
-      padding: 5px 2px 2px;
-    }
-
+    .day-num-wrap { display: flex; justify-content: center; padding: 4px 2px 2px; }
     .day-num {
-      font-size: 14px;
-      font-weight: 700;
-      color: #4a7fa0;
-      width: 26px; height: 26px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      line-height: 1;
+      font-size: 13px; font-weight: 700; color: #4a7fa0;
+      width: 24px; height: 24px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; line-height: 1;
     }
-
-    /* 今天 */
     .day-cell.today .day-num {
-      background: #a8d8f0;
-      color: #1e6a96;
-      font-weight: 900;
-      box-shadow: 0 0 0 2px #fff, 0 0 0 4px #a8d8f0;
+      background: #a8d8f0; color: #1e6a96; font-weight: 900;
+      box-shadow: 0 0 0 2px #fff, 0 0 0 3px #a8d8f0;
     }
 
     /* 颜色等级 */
@@ -182,13 +122,11 @@
     .day-cell.level-3,
     .day-cell.level-4,
     .day-cell.level-5 { background: rgba(255,220,220,0.85); }
-
     .day-cell.level-1 .day-num { color: #3a8a3a; }
     .day-cell.level-2 .day-num { color: #b07800; }
     .day-cell.level-3 .day-num,
     .day-cell.level-4 .day-num,
     .day-cell.level-5 .day-num { color: #c0392b; }
-
     .day-cell.today.level-1 .day-num { background: #7dda7d; color: #145214; }
     .day-cell.today.level-2 .day-num { background: #ffd95a; color: #7a5000; }
     .day-cell.today.level-3 .day-num,
@@ -196,304 +134,188 @@
     .day-cell.today.level-5 .day-num { background: #ff9999; color: #7a0000; }
 
     /* 选中 */
-    .day-cell.selected {
-      outline: 2.5px solid #5bb8e8;
-      outline-offset: -2px;
-      z-index: 1;
-    }
+    .day-cell.selected { outline: 2.5px solid #5bb8e8; outline-offset: -2px; z-index: 1; }
 
     /* 格内事件标签 */
-    .cell-events {
-      padding: 1px 3px 3px;
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-      overflow: hidden;
-    }
-
+    .cell-events { padding: 1px 3px 2px; display: flex; flex-direction: column; gap: 2px; overflow: hidden; }
     .cell-event-tag {
-      font-size: 10px;
-      line-height: 1.35;
-      padding: 1px 4px;
-      border-radius: 4px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      color: #fff;
-      font-weight: 600;
+      font-size: 10px; line-height: 1.3; padding: 1px 4px;
+      border-radius: 4px; white-space: nowrap; overflow: hidden;
+      text-overflow: ellipsis; color: #fff; font-weight: 600;
     }
-
     .day-cell.level-1 .cell-event-tag { background: #52b552; }
     .day-cell.level-2 .cell-event-tag { background: #e09020; }
     .day-cell.level-3 .cell-event-tag,
     .day-cell.level-4 .cell-event-tag,
     .day-cell.level-5 .cell-event-tag { background: #e05050; }
+    .cell-more { font-size: 9px; color: #90b0c0; text-align: right; padding-right: 3px; }
 
-    .cell-more {
-      font-size: 9px;
-      color: #90b0c0;
-      text-align: right;
-      padding-right: 4px;
+    /* ===== 编辑气泡弹窗 ===== */
+    #bubbleOverlay {
+      position: fixed; inset: 0;
+      background: rgba(180,220,240,0.35);
+      backdrop-filter: blur(3px);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 50;
+      padding: 16px;
+    }
+    #bubbleOverlay.hidden { display: none; }
+
+    #bubble {
+      background: linear-gradient(160deg, #eaf6fd 0%, #fff 100%);
+      border-radius: 22px;
+      width: 100%; max-width: 340px;
+      box-shadow: 0 8px 32px rgba(91,184,232,0.25), 0 2px 8px rgba(91,184,232,0.15);
+      border: 2px solid rgba(168,216,240,0.6);
+      overflow: hidden;
+      animation: popIn 0.2s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    @keyframes popIn {
+      from { transform: scale(0.85); opacity: 0; }
+      to   { transform: scale(1);    opacity: 1; }
     }
 
-    /* ===== 事件面板 ===== */
-    .event-panel {
-      background: rgba(255,255,255,0.82);
-      border-top: 2px solid rgba(168,216,240,0.6);
-      padding: 14px 14px 86px;
+    /* 气泡头部：小狗头 + 日期 + 关闭 */
+    .bubble-head {
+      display: flex; align-items: center; gap: 10px;
+      background: linear-gradient(135deg, #a8d8f0, #c5e8f8);
+      padding: 12px 14px 10px;
+      position: relative;
     }
 
-    .panel-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 10px;
+    /* 玉桂狗 SVG 头像 */
+    .dog-head {
+      width: 48px; height: 48px; flex-shrink: 0;
     }
 
-    .panel-title {
-      font-size: 14px;
-      font-weight: 800;
-      color: #4a90b8;
-      display: flex;
-      align-items: center;
-      gap: 6px;
+    .bubble-date {
+      flex: 1;
+      font-size: 14px; font-weight: 800; color: #1e6a96;
+      line-height: 1.3;
+    }
+    .bubble-date span {
+      display: block; font-size: 11px; font-weight: 500; color: #5ba8d0; margin-top: 1px;
     }
 
-    .date-badge {
-      font-size: 11px;
-      background: #a8d8f0;
-      color: #1e6a96;
-      padding: 2px 10px;
-      border-radius: 20px;
-      font-weight: 700;
-      border: 1.5px solid #fff;
+    .bubble-close {
+      background: rgba(255,255,255,0.6); border: none; border-radius: 50%;
+      width: 28px; height: 28px; font-size: 14px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      color: #4a90b8; transition: background 0.15s;
     }
+    .bubble-close:active { background: rgba(255,255,255,0.9); }
 
-    .legend {
-      display: flex;
-      gap: 8px;
-      align-items: center;
+    /* 气泡内容 */
+    .bubble-body { padding: 12px 14px 14px; }
+
+    /* 色标 */
+    .bubble-legend {
+      display: flex; gap: 10px; margin-bottom: 10px;
     }
-    .legend-item {
+    .bubble-legend-item {
       display: flex; align-items: center; gap: 3px;
       font-size: 10px; color: #7ab8d4; font-weight: 600;
     }
-    .ldot { width: 8px; height: 8px; border-radius: 50%; }
-    .ldot-g { background: #52b552; }
-    .ldot-y { background: #e09020; }
-    .ldot-r { background: #e05050; }
+    .bldot { width: 8px; height: 8px; border-radius: 50%; }
+    .bldot-g { background: #52b552; }
+    .bldot-y { background: #e09020; }
+    .bldot-r { background: #e05050; }
 
     /* 事件列表 */
-    .event-list { list-style: none; margin-bottom: 12px; }
+    .bubble-list { list-style: none; margin-bottom: 10px; }
 
-    .event-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 12px;
-      border-radius: 14px;
-      background: rgba(255,255,255,0.9);
-      margin-bottom: 7px;
-      border: 1.5px solid rgba(168,216,240,0.5);
-      box-shadow: 0 1px 5px rgba(100,180,230,0.1);
+    .bubble-item {
+      display: flex; align-items: center; gap: 7px;
+      padding: 8px 10px; border-radius: 12px;
+      background: rgba(240,249,255,0.9);
+      margin-bottom: 6px;
+      border: 1.5px solid rgba(168,216,240,0.4);
     }
-
-    .event-index {
-      font-size: 12px;
-      color: #a8d8f0;
-      font-weight: 800;
-      min-width: 18px;
+    .bubble-item-idx {
+      font-size: 11px; color: #a8d8f0; font-weight: 800; min-width: 16px;
     }
-
-    .event-text {
-      flex: 1;
-      font-size: 14px;
-      color: #3a6a88;
-      word-break: break-all;
-      line-height: 1.4;
-      font-weight: 500;
+    .bubble-item-text {
+      flex: 1; font-size: 13px; color: #3a6a88;
+      word-break: break-all; line-height: 1.4; font-weight: 500;
     }
-    .event-text.editing { display: none; }
+    .bubble-item-text.hidden { display: none; }
 
-    .event-edit-input {
-      flex: 1;
-      font-size: 14px;
-      border: 1.5px solid #a8d8f0;
-      border-radius: 10px;
-      padding: 4px 10px;
-      outline: none;
+    .bubble-item-input {
+      flex: 1; font-size: 13px;
+      border: 1.5px solid #a8d8f0; border-radius: 8px;
+      padding: 3px 8px; outline: none;
+      font-family: inherit; color: #3a6a88; background: #fff;
       display: none;
-      font-family: inherit;
-      color: #3a6a88;
-      background: #f0f9ff;
     }
-    .event-edit-input.editing { display: block; }
+    .bubble-item-input.show { display: block; }
 
-    .btn-icon {
+    .bibtn {
       background: none; border: none; cursor: pointer;
-      font-size: 16px; padding: 2px 4px;
-      border-radius: 8px; transition: background 0.15s; line-height: 1;
+      font-size: 15px; padding: 1px 3px; border-radius: 6px;
+      line-height: 1; transition: background 0.12s;
     }
-    .btn-icon:active { background: rgba(168,216,240,0.4); }
+    .bibtn:active { background: rgba(168,216,240,0.4); }
 
-    .no-events {
-      text-align: center;
-      color: #a8d8f0;
-      font-size: 13px;
-      padding: 16px 0 8px;
-      font-weight: 600;
+    .bubble-no-events {
+      text-align: center; color: #b8ddf0;
+      font-size: 12px; padding: 10px 0 4px; font-weight: 600;
     }
 
-    /* 添加事件 */
-    .add-event-row { display: flex; gap: 8px; margin-top: 4px; }
-
-    .add-event-row input {
-      flex: 1;
-      border: 2px solid rgba(168,216,240,0.7);
-      border-radius: 24px;
-      padding: 10px 16px;
-      font-size: 14px;
-      outline: none;
-      background: rgba(255,255,255,0.9);
-      font-family: inherit;
-      color: #3a6a88;
+    /* 添加事件行 */
+    .bubble-add {
+      display: flex; gap: 7px; margin-top: 4px;
+    }
+    .bubble-add input {
+      flex: 1; border: 2px solid rgba(168,216,240,0.7);
+      border-radius: 20px; padding: 8px 13px;
+      font-size: 13px; outline: none;
+      background: #fff; font-family: inherit; color: #3a6a88;
       transition: border-color 0.2s;
     }
-    .add-event-row input::placeholder { color: #b8ddf0; }
-    .add-event-row input:focus { border-color: #5bb8e8; }
-
-    .add-event-row button {
+    .bubble-add input::placeholder { color: #b8ddf0; }
+    .bubble-add input:focus { border-color: #5bb8e8; }
+    .bubble-add button {
       background: linear-gradient(135deg, #5bb8e8, #a8d8f0);
-      color: #fff;
-      border: none;
-      border-radius: 24px;
-      padding: 10px 18px;
-      font-size: 14px;
-      font-weight: 800;
-      cursor: pointer;
-      font-family: inherit;
-      box-shadow: 0 2px 8px rgba(91,184,232,0.4);
-      transition: transform 0.15s;
+      color: #fff; border: none; border-radius: 20px;
+      padding: 8px 15px; font-size: 13px; font-weight: 800;
+      cursor: pointer; font-family: inherit;
+      box-shadow: 0 2px 6px rgba(91,184,232,0.35);
+      transition: transform 0.12s;
     }
-    .add-event-row button:active { transform: scale(0.95); }
-    .add-event-row button:disabled {
-      background: #c5e8f8;
-      box-shadow: none;
-      cursor: not-allowed;
-    }
+    .bubble-add button:active { transform: scale(0.95); }
+    .bubble-add button:disabled { background: #c5e8f8; box-shadow: none; cursor: not-allowed; }
 
-    .limit-tip {
-      font-size: 11px; color: #5bb8e8;
-      margin-top: 6px; text-align: center; display: none;
+    .bubble-limit {
+      font-size: 10px; color: #5bb8e8;
+      text-align: center; margin-top: 5px; display: none;
     }
-    .limit-tip.visible { display: block; }
+    .bubble-limit.show { display: block; }
 
-    /* ===== 悬浮刷新按钮 ===== */
+    /* ===== 悬浮刷新 ===== */
     #refreshBtn {
-      position: fixed;
-      bottom: 20px; right: 16px;
-      width: 44px; height: 44px;
-      border-radius: 50%;
+      position: fixed; bottom: 18px; right: 14px;
+      width: 42px; height: 42px; border-radius: 50%;
       background: linear-gradient(135deg, #a8d8f0, #c5e8f8);
-      border: 2px solid #fff;
-      font-size: 20px;
-      cursor: pointer;
+      border: 2px solid #fff; font-size: 18px; cursor: pointer;
       box-shadow: 0 3px 12px rgba(91,184,232,0.4);
       display: flex; align-items: center; justify-content: center;
-      z-index: 20;
-      transition: transform 0.2s;
+      z-index: 20; transition: transform 0.2s;
     }
-    #refreshBtn:active { transform: scale(0.92); }
+    #refreshBtn:active { transform: scale(0.9); }
     #refreshBtn.spinning { animation: spin 0.8s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* ===== 配置弹窗 ===== */
-    #configOverlay {
-      position: fixed; inset: 0;
-      background: rgba(168,216,240,0.45);
-      backdrop-filter: blur(6px);
-      display: flex; align-items: flex-end; justify-content: center;
-      z-index: 100;
-    }
-    #configBox {
-      background: linear-gradient(180deg, #eaf6fd 0%, #fff 100%);
-      border-radius: 24px 24px 0 0;
-      padding: 20px 20px 36px;
-      width: 100%; max-width: 520px;
-      box-shadow: 0 -4px 24px rgba(91,184,232,0.2);
-      animation: slideUp 0.25s ease;
-    }
-    @keyframes slideUp {
-      from { transform: translateY(60px); opacity: 0; }
-      to   { transform: translateY(0);    opacity: 1; }
-    }
-    .drag-handle {
-      width: 40px; height: 4px;
-      background: #a8d8f0;
-      border-radius: 2px;
-      margin: 0 auto 16px;
-    }
-    #configBox h2 {
-      font-size: 16px; font-weight: 800;
-      color: #4a90b8; margin-bottom: 6px;
-    }
-    #configBox p {
-      font-size: 12px; color: #7ab8d4;
-      margin-bottom: 14px; line-height: 1.6;
-    }
-    #configBox label {
-      font-size: 11px; color: #4a90b8;
-      font-weight: 700; display: block;
-      margin-bottom: 4px; margin-top: 10px;
-    }
-    #configBox input {
-      width: 100%;
-      border: 2px solid #a8d8f0;
-      border-radius: 12px;
-      padding: 10px 14px;
-      font-size: 13px; outline: none;
-      font-family: monospace; color: #3a6a88;
-      background: #f0f9ff;
-      transition: border-color 0.2s;
-    }
-    #configBox input:focus { border-color: #5bb8e8; }
-    #configBox .btn-row {
-      display: flex; gap: 10px; margin-top: 16px;
-    }
-    #configBox button {
-      flex: 1; border: none; border-radius: 24px;
-      padding: 12px; font-size: 14px; font-weight: 700;
-      cursor: pointer; font-family: inherit;
-      transition: transform 0.15s;
-    }
-    #configBox button:active { transform: scale(0.97); }
-    #configBox .btn-primary {
-      background: linear-gradient(135deg, #5bb8e8, #a8d8f0);
-      color: #fff;
-      box-shadow: 0 2px 8px rgba(91,184,232,0.35);
-    }
-    #configBox .btn-secondary {
-      background: #e0f4fc; color: #4a90b8;
-    }
-
-    /* ===== 装饰元素 ===== */
-    .header-decos {
-      display: flex; gap: 2px; font-size: 16px;
-    }
   </style>
 </head>
 <body>
 
-<!-- 无需配置弹窗，Supabase 已内置 -->
-
 <!-- 顶部标题 -->
 <div class="app-header">
   <div class="app-title">
-    <span style="font-size:26px;line-height:1">🐶</span>
+    <span style="font-size:24px;line-height:1">🐶</span>
     <h1>Check in Schedule</h1>
     <span class="header-decos">🍒🎀</span>
   </div>
-  <div id="syncBar"><div class="sdot"></div><span id="syncText">未同步</span></div>
+  <div id="syncBar"><div class="sdot"></div><span id="syncText">同步中…</span></div>
 </div>
 
 <!-- 月份导航 -->
@@ -503,7 +325,7 @@
   <button type="button" id="nextMonth">›</button>
 </div>
 
-<!-- 星期行（周一开始）-->
+<!-- 星期行 -->
 <div class="weekdays">
   <span>一</span><span>二</span><span>三</span><span>四</span>
   <span>五</span><span class="wkend">六</span><span class="wkend">日</span>
@@ -512,47 +334,76 @@
 <!-- 日期网格 -->
 <div class="days-grid" id="daysGrid"></div>
 
-<!-- 事件面板 -->
-<div class="event-panel">
-  <div class="panel-header">
-    <div class="panel-title">
-      🐾 <span id="dateBadge" class="date-badge"></span>
+<!-- 编辑气泡 -->
+<div id="bubbleOverlay" class="hidden">
+  <div id="bubble">
+    <!-- 头部：玉桂狗头 + 日期 + 关闭 -->
+    <div class="bubble-head">
+      <!-- 玉桂狗头像 SVG -->
+      <svg class="dog-head" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <!-- 耳朵 -->
+        <ellipse cx="22" cy="38" rx="14" ry="18" fill="#fff" stroke="#c8e8f8" stroke-width="2"/>
+        <ellipse cx="78" cy="38" rx="14" ry="18" fill="#fff" stroke="#c8e8f8" stroke-width="2"/>
+        <ellipse cx="22" cy="40" rx="9" ry="13" fill="#d6eef8"/>
+        <ellipse cx="78" cy="40" rx="9" ry="13" fill="#d6eef8"/>
+        <!-- 头 -->
+        <ellipse cx="50" cy="55" rx="34" ry="32" fill="#fff" stroke="#c8e8f8" stroke-width="2"/>
+        <!-- 眼睛 -->
+        <ellipse cx="37" cy="50" rx="6" ry="7" fill="#2a2a2a"/>
+        <ellipse cx="63" cy="50" rx="6" ry="7" fill="#2a2a2a"/>
+        <circle cx="39" cy="48" r="2" fill="#fff"/>
+        <circle cx="65" cy="48" r="2" fill="#fff"/>
+        <!-- 鼻子 -->
+        <ellipse cx="50" cy="62" rx="7" ry="5" fill="#2a2a2a"/>
+        <!-- 嘴 -->
+        <path d="M44 67 Q50 73 56 67" fill="none" stroke="#2a2a2a" stroke-width="1.8" stroke-linecap="round"/>
+        <!-- 脸颊腮红 -->
+        <ellipse cx="30" cy="64" rx="7" ry="4" fill="#ffc0cb" opacity="0.5"/>
+        <ellipse cx="70" cy="64" rx="7" ry="4" fill="#ffc0cb" opacity="0.5"/>
+        <!-- 头顶蝴蝶结 -->
+        <path d="M42 22 Q50 17 58 22 Q50 27 42 22Z" fill="#ffb7c5"/>
+        <circle cx="50" cy="22" r="3" fill="#ff88aa"/>
+      </svg>
+
+      <div class="bubble-date">
+        <div id="bubbleDateText"></div>
+        <span id="bubbleDateSub"></span>
+      </div>
+      <button type="button" class="bubble-close" id="bubbleClose">✕</button>
     </div>
-    <div class="legend">
-      <div class="legend-item"><div class="ldot ldot-g"></div>1条</div>
-      <div class="legend-item"><div class="ldot ldot-y"></div>2条</div>
-      <div class="legend-item"><div class="ldot ldot-r"></div>3+条</div>
+
+    <!-- 内容 -->
+    <div class="bubble-body">
+      <div class="bubble-legend">
+        <div class="bubble-legend-item"><div class="bldot bldot-g"></div>1条</div>
+        <div class="bubble-legend-item"><div class="bldot bldot-y"></div>2条</div>
+        <div class="bubble-legend-item"><div class="bldot bldot-r"></div>3+条</div>
+      </div>
+      <ul class="bubble-list" id="bubbleList"></ul>
+      <div class="bubble-add">
+        <input type="text" id="bubbleInput" placeholder="🐶 记点什么呀～" maxlength="100" />
+        <button type="button" id="bubbleAddBtn">添加</button>
+      </div>
+      <div class="bubble-limit" id="bubbleLimit">🐶 最多 5 条哦～</div>
     </div>
   </div>
-
-  <ul class="event-list" id="eventList"></ul>
-
-  <div class="add-event-row">
-    <input type="text" id="newEventInput" placeholder="🐶 记点什么呀～" maxlength="100" />
-    <button type="button" id="addEventBtn">添加</button>
-  </div>
-  <div class="limit-tip" id="limitTip">🐶 最多登记 5 条哦～</div>
 </div>
 
-<!-- 悬浮刷新按钮 -->
-<button type="button" id="refreshBtn" title="手动刷新同步">🔄</button>
+<!-- 悬浮刷新 -->
+<button type="button" id="refreshBtn" title="刷新同步">🔄</button>
 
 <script>
-  // ===== Supabase 配置（与情侣日历共用）=====
+  // ===== Supabase =====
   const SUPA_URL = 'https://tsppopxdtcqlzbjqsofx.supabase.co';
   const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRzcHBvcHhkdGNxbHpianFzb2Z4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMTI4NjcsImV4cCI6MjEwMDg4ODg2N30.GNduXMm3pXAr-c-OhZN6aHxbwlmdEwX2n2XV7wGHX8Q';
-  const HEADERS  = { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' };
+  const HDR      = { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json' };
   const TABLE    = `${SUPA_URL}/rest/v1/calendar_events`;
 
   // ===== 同步状态 =====
   const syncBar  = document.getElementById('syncBar');
   const syncText = document.getElementById('syncText');
-  function setSyncStatus(state, msg) {
-    syncBar.className = state;
-    syncText.textContent = msg;
-  }
+  function setSyncStatus(state, msg) { syncBar.className = state; syncText.textContent = msg; }
 
-  // ===== 从 Supabase 拉取所有事件，转为内存 data 对象 =====
   async function fetchAll() {
     setSyncStatus('syncing', '同步中…');
     try {
@@ -561,111 +412,82 @@
       });
       if (!res.ok) throw new Error(res.status);
       const rows = await res.json();
-      // 转换为 { "2026-08-18": ["事件1","事件2"], ... }
       const obj = {};
       rows.forEach(r => {
         if (!obj[r.date_key]) obj[r.date_key] = [];
         obj[r.date_key][r.idx] = r.content;
       });
-      // 过滤空洞
       Object.keys(obj).forEach(k => { obj[k] = obj[k].filter(Boolean); });
       setSyncStatus('ok', '已同步 ✓');
       return obj;
     } catch (e) {
-      setSyncStatus('error', `同步失败 (${e.message})`);
+      setSyncStatus('error', `失败 (${e.message})`);
       return null;
     }
   }
 
-  // ===== 写入单条事件（upsert）=====
-  async function upsertEvent(dateKey, idx, content) {
+  async function upsertEvent(dk, idx, content) {
     setSyncStatus('syncing', '保存中…');
-    const res = await fetch(`${TABLE}`, {
+    const res = await fetch(TABLE, {
       method: 'POST',
-      headers: { ...HEADERS, 'Prefer': 'resolution=merge-duplicates,return=minimal' },
-      body: JSON.stringify({ date_key: dateKey, idx, content, updated_at: new Date().toISOString() })
+      headers: { ...HDR, 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+      body: JSON.stringify({ date_key: dk, idx, content, updated_at: new Date().toISOString() })
     });
-    if (res.ok) { setSyncStatus('ok', '已保存 ✓'); }
-    else { setSyncStatus('error', `保存失败 (${res.status})`); }
+    setSyncStatus(res.ok ? 'ok' : 'error', res.ok ? '已保存 ✓' : `保存失败 (${res.status})`);
   }
 
-  // ===== 删除单条事件 =====
-  async function deleteEvent(dateKey, idx) {
-    setSyncStatus('syncing', '删除中…');
-    // 删除指定行
-    await fetch(`${TABLE}?date_key=eq.${encodeURIComponent(dateKey)}&idx=eq.${idx}`, {
-      method: 'DELETE',
-      headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` }
+  async function rewriteDay(dk, events) {
+    await fetch(`${TABLE}?date_key=eq.${encodeURIComponent(dk)}`, {
+      method: 'DELETE', headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` }
     });
-    // 删除后重新整理该日期的 idx（保持连续）
-    const events = data[dateKey] || [];
-    // 用批量 upsert 重写该日期所有事件
-    await rewriteDay(dateKey, events);
-    setSyncStatus('ok', '已同步 ✓');
-  }
-
-  // ===== 重写某一天所有事件（删除旧的再插入新的）=====
-  async function rewriteDay(dateKey, events) {
-    // 先删除该日期所有行
-    await fetch(`${TABLE}?date_key=eq.${encodeURIComponent(dateKey)}`, {
-      method: 'DELETE',
-      headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` }
-    });
-    if (!events || events.length === 0) return;
-    // 重新插入
-    const rows = events.map((c, i) => ({ date_key: dateKey, idx: i, content: c, updated_at: new Date().toISOString() }));
-    await fetch(`${TABLE}`, {
+    if (!events || !events.length) { setSyncStatus('ok', '已同步 ✓'); return; }
+    const rows = events.map((c, i) => ({ date_key: dk, idx: i, content: c, updated_at: new Date().toISOString() }));
+    const res = await fetch(TABLE, {
       method: 'POST',
-      headers: { ...HEADERS, 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+      headers: { ...HDR, 'Prefer': 'resolution=merge-duplicates,return=minimal' },
       body: JSON.stringify(rows)
     });
+    setSyncStatus(res.ok ? 'ok' : 'error', res.ok ? '已同步 ✓' : `保存失败 (${res.status})`);
   }
 
-  function dateKey(year, month, day) {
-    return `${year}-${String(month + 1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+  function mkDateKey(year, month, day) {
+    return `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
   }
 
   const today = new Date();
   let curYear  = today.getFullYear();
   let curMonth = today.getMonth();
-  let selectedDate = dateKey(today.getFullYear(), today.getMonth(), today.getDate());
+  let activeDate = mkDateKey(today.getFullYear(), today.getMonth(), today.getDate());
   let data = {};
 
-  // ===== 日历渲染（周一=0偏移）=====
+  // ===== 日历渲染 =====
   function renderCalendar() {
     document.getElementById('monthTitle').textContent = `${curYear} 年 ${curMonth + 1} 月`;
     const grid = document.getElementById('daysGrid');
     grid.innerHTML = '';
-
-    const firstDow    = new Date(curYear, curMonth, 1).getDay(); // 0=Sun
-    // 周一为第一列：Sun(0)->6, Mon(1)->0, Tue(2)->1 ...
-    const offset      = (firstDow + 6) % 7;
+    const offset      = (new Date(curYear, curMonth, 1).getDay() + 6) % 7;
     const daysInMonth = new Date(curYear, curMonth + 1, 0).getDate();
 
     for (let i = 0; i < offset; i++) {
-      const empty = document.createElement('div');
-      empty.className = 'day-cell empty';
-      grid.appendChild(empty);
+      const e = document.createElement('div');
+      e.className = 'day-cell empty';
+      grid.appendChild(e);
     }
 
     for (let d = 1; d <= daysInMonth; d++) {
-      const key    = dateKey(curYear, curMonth, d);
+      const key    = mkDateKey(curYear, curMonth, d);
       const events = data[key] || [];
       const count  = events.length;
 
       const cell = document.createElement('div');
       cell.className = 'day-cell';
-
       if (curYear === today.getFullYear() && curMonth === today.getMonth() && d === today.getDate())
         cell.classList.add('today');
-
       if      (count === 1) cell.classList.add('level-1');
       else if (count === 2) cell.classList.add('level-2');
       else if (count >= 3)  cell.classList.add('level-3');
+      if (key === activeDate) cell.classList.add('selected');
 
-      if (key === selectedDate) cell.classList.add('selected');
-
-      // 日期数字
       const numWrap = document.createElement('div');
       numWrap.className = 'day-num-wrap';
       const numEl = document.createElement('div');
@@ -674,166 +496,171 @@
       numWrap.appendChild(numEl);
       cell.appendChild(numWrap);
 
-      // 格内事件（最多2条 + +N）
       if (count > 0) {
-        const tagsWrap = document.createElement('div');
-        tagsWrap.className = 'cell-events';
-        const showMax = 2;
-        events.slice(0, showMax).forEach(text => {
+        const wrap = document.createElement('div');
+        wrap.className = 'cell-events';
+        events.slice(0, 2).forEach(t => {
           const tag = document.createElement('div');
           tag.className = 'cell-event-tag';
-          tag.textContent = text;
-          tagsWrap.appendChild(tag);
+          tag.textContent = t;
+          wrap.appendChild(tag);
         });
-        if (count > showMax) {
+        if (count > 2) {
           const more = document.createElement('div');
           more.className = 'cell-more';
-          more.textContent = `+${count - showMax} 条`;
-          tagsWrap.appendChild(more);
+          more.textContent = `+${count - 2}`;
+          wrap.appendChild(more);
         }
-        cell.appendChild(tagsWrap);
+        cell.appendChild(wrap);
       }
 
-      cell.addEventListener('click', () => {
-        selectedDate = key;
-        renderCalendar();
-        renderEvents();
-        document.querySelector('.event-panel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      });
-
+      cell.addEventListener('click', () => openBubble(key, d));
       grid.appendChild(cell);
     }
   }
 
-  // ===== 事件面板 =====
-  function renderEvents() {
-    const events   = data[selectedDate] || [];
-    const list     = document.getElementById('eventList');
-    const badge    = document.getElementById('dateBadge');
-    const addBtn   = document.getElementById('addEventBtn');
-    const limitTip = document.getElementById('limitTip');
+  // ===== 气泡 =====
+  const overlay    = document.getElementById('bubbleOverlay');
+  const bubbleList = document.getElementById('bubbleList');
+  const bubbleInput = document.getElementById('bubbleInput');
+  const bubbleAddBtn = document.getElementById('bubbleAddBtn');
+  const bubbleLimit  = document.getElementById('bubbleLimit');
 
-    const [y, m, d] = selectedDate.split('-');
-    badge.textContent = `${y}年${parseInt(m)}月${parseInt(d)}日`;
-    list.innerHTML = '';
+  const WEEKDAYS = ['周日','周一','周二','周三','周四','周五','周六'];
 
-    if (events.length === 0) {
-      const empty = document.createElement('li');
-      empty.className = 'no-events';
-      empty.textContent = '🐶 今天还没有事件，记点什么吧～';
-      list.appendChild(empty);
-    } else {
-      events.forEach((text, idx) => list.appendChild(createEventItem(text, idx)));
-    }
-
-    addBtn.disabled = events.length >= 5;
-    limitTip.classList.toggle('visible', events.length >= 5);
+  function openBubble(key, day) {
+    activeDate = key;
+    renderCalendar();
+    const [y, m] = key.split('-');
+    const dow = new Date(key).getDay();
+    document.getElementById('bubbleDateText').textContent = `${parseInt(y)}年${parseInt(m)}月${day}日`;
+    document.getElementById('bubbleDateSub').textContent  = WEEKDAYS[dow];
+    renderBubbleList();
+    overlay.classList.remove('hidden');
+    setTimeout(() => bubbleInput.focus(), 120);
   }
 
-  function createEventItem(text, idx) {
+  function closeBubble() { overlay.classList.add('hidden'); }
+  document.getElementById('bubbleClose').addEventListener('click', closeBubble);
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeBubble(); });
+
+  function renderBubbleList() {
+    const events = data[activeDate] || [];
+    bubbleList.innerHTML = '';
+
+    if (events.length === 0) {
+      const li = document.createElement('li');
+      li.className = 'bubble-no-events';
+      li.textContent = '🐶 还没有事件，记点什么吧～';
+      bubbleList.appendChild(li);
+    } else {
+      events.forEach((text, idx) => bubbleList.appendChild(makeBubbleItem(text, idx)));
+    }
+
+    const full = events.length >= 5;
+    bubbleAddBtn.disabled = full;
+    bubbleLimit.classList.toggle('show', full);
+  }
+
+  function makeBubbleItem(text, idx) {
     const li = document.createElement('li');
-    li.className = 'event-item';
+    li.className = 'bubble-item';
 
-    const idxSpan = document.createElement('span');
-    idxSpan.className = 'event-index';
-    idxSpan.textContent = `${idx + 1}.`;
+    const idxEl = document.createElement('span');
+    idxEl.className = 'bubble-item-idx';
+    idxEl.textContent = `${idx + 1}.`;
 
-    const textSpan = document.createElement('span');
-    textSpan.className = 'event-text';
-    textSpan.textContent = text;
+    const textEl = document.createElement('span');
+    textEl.className = 'bubble-item-text';
+    textEl.textContent = text;
 
-    const editInput = document.createElement('input');
-    editInput.className = 'event-edit-input';
-    editInput.type = 'text';
-    editInput.value = text;
-    editInput.maxLength = 100;
+    const inputEl = document.createElement('input');
+    inputEl.className = 'bubble-item-input';
+    inputEl.type = 'text';
+    inputEl.value = text;
+    inputEl.maxLength = 100;
 
     const editBtn = document.createElement('button');
-    editBtn.className = 'btn-icon'; editBtn.type = 'button';
+    editBtn.className = 'bibtn'; editBtn.type = 'button';
     editBtn.title = '编辑'; editBtn.textContent = '✏️';
 
     const saveBtn = document.createElement('button');
-    saveBtn.className = 'btn-icon'; saveBtn.type = 'button';
+    saveBtn.className = 'bibtn'; saveBtn.type = 'button';
     saveBtn.title = '保存'; saveBtn.textContent = '✅';
     saveBtn.style.display = 'none';
 
     const cancelBtn = document.createElement('button');
-    cancelBtn.className = 'btn-icon'; cancelBtn.type = 'button';
+    cancelBtn.className = 'bibtn'; cancelBtn.type = 'button';
     cancelBtn.title = '取消'; cancelBtn.textContent = '❌';
     cancelBtn.style.display = 'none';
 
     const delBtn = document.createElement('button');
-    delBtn.className = 'btn-icon'; delBtn.type = 'button';
+    delBtn.className = 'bibtn'; delBtn.type = 'button';
     delBtn.title = '删除'; delBtn.textContent = '🗑️';
 
     editBtn.addEventListener('click', () => {
-      textSpan.classList.add('editing');
-      editInput.classList.add('editing');
-      editBtn.style.display = 'none';
-      delBtn.style.display = 'none';
-      saveBtn.style.display = '';
-      cancelBtn.style.display = '';
-      editInput.focus(); editInput.select();
+      textEl.classList.add('hidden');
+      inputEl.classList.add('show');
+      editBtn.style.display = 'none'; delBtn.style.display = 'none';
+      saveBtn.style.display = ''; cancelBtn.style.display = '';
+      inputEl.focus(); inputEl.select();
     });
 
     const doSave = async () => {
-      const newVal = editInput.value.trim();
-      if (!newVal) { alert('事件内容不能为空哦'); return; }
-      if (!data[selectedDate]) data[selectedDate] = [];
-      data[selectedDate][idx] = newVal;
-      renderCalendar(); renderEvents();
-      await upsertEvent(selectedDate, idx, newVal);
+      const v = inputEl.value.trim();
+      if (!v) { alert('事件内容不能为空哦'); return; }
+      if (!data[activeDate]) data[activeDate] = [];
+      data[activeDate][idx] = v;
+      renderBubbleList(); renderCalendar();
+      await upsertEvent(activeDate, idx, v);
     };
 
     saveBtn.addEventListener('click', doSave);
-    editInput.addEventListener('keydown', e => {
+    inputEl.addEventListener('keydown', e => {
       if (e.key === 'Enter') doSave();
       if (e.key === 'Escape') cancelBtn.click();
     });
 
     cancelBtn.addEventListener('click', () => {
-      textSpan.classList.remove('editing');
-      editInput.classList.remove('editing');
-      editInput.value = text;
+      textEl.classList.remove('hidden');
+      inputEl.classList.remove('show');
+      inputEl.value = text;
       editBtn.style.display = ''; delBtn.style.display = '';
       saveBtn.style.display = 'none'; cancelBtn.style.display = 'none';
     });
 
     delBtn.addEventListener('click', async () => {
-      if (!data[selectedDate]) return;
-      data[selectedDate].splice(idx, 1);
-      if (data[selectedDate].length === 0) delete data[selectedDate];
-      renderCalendar(); renderEvents();
-      // 重写该天（删除 + 重新插入保持 idx 连续）
-      await rewriteDay(selectedDate, data[selectedDate] || []);
+      if (!data[activeDate]) return;
+      data[activeDate].splice(idx, 1);
+      if (!data[activeDate].length) delete data[activeDate];
+      renderBubbleList(); renderCalendar();
+      await rewriteDay(activeDate, data[activeDate] || []);
     });
 
-    li.appendChild(idxSpan); li.appendChild(textSpan);
-    li.appendChild(editInput); li.appendChild(editBtn);
-    li.appendChild(saveBtn); li.appendChild(cancelBtn);
-    li.appendChild(delBtn);
+    li.appendChild(idxEl); li.appendChild(textEl); li.appendChild(inputEl);
+    li.appendChild(editBtn); li.appendChild(saveBtn);
+    li.appendChild(cancelBtn); li.appendChild(delBtn);
     return li;
   }
 
-  async function addEvent() {
-    const input = document.getElementById('newEventInput');
-    const text  = input.value.trim();
+  // 气泡添加事件
+  async function bubbleAdd() {
+    const text = bubbleInput.value.trim();
     if (!text) return;
-    if (!data[selectedDate]) data[selectedDate] = [];
-    if (data[selectedDate].length >= 5) return;
-    const idx = data[selectedDate].length;
-    data[selectedDate].push(text);
-    input.value = '';
-    renderCalendar(); renderEvents();
-    await upsertEvent(selectedDate, idx, text);
-    input.focus();
+    if (!data[activeDate]) data[activeDate] = [];
+    if (data[activeDate].length >= 5) return;
+    const idx = data[activeDate].length;
+    data[activeDate].push(text);
+    bubbleInput.value = '';
+    renderBubbleList(); renderCalendar();
+    await upsertEvent(activeDate, idx, text);
+    bubbleInput.focus();
   }
 
-  document.getElementById('addEventBtn').addEventListener('click', addEvent);
-  document.getElementById('newEventInput').addEventListener('keydown', e => {
-    if (e.key === 'Enter') addEvent();
-  });
+  bubbleAddBtn.addEventListener('click', bubbleAdd);
+  bubbleInput.addEventListener('keydown', e => { if (e.key === 'Enter') bubbleAdd(); });
 
+  // ===== 月份切换 =====
   document.getElementById('prevMonth').addEventListener('click', () => {
     if (--curMonth < 0) { curMonth = 11; curYear--; }
     renderCalendar();
@@ -843,30 +670,22 @@
     renderCalendar();
   });
 
-  // 从 Supabase 拉取数据并渲染
+  // ===== 同步 =====
   async function syncAndRender() {
-    const refreshBtn = document.getElementById('refreshBtn');
-    if (refreshBtn) refreshBtn.classList.add('spinning');
+    const btn = document.getElementById('refreshBtn');
+    btn.classList.add('spinning');
     const remote = await fetchAll();
-    if (remote !== null) {
-      data = remote;
-      renderCalendar();
-      renderEvents();
-    }
-    if (refreshBtn) refreshBtn.classList.remove('spinning');
+    if (remote !== null) { data = remote; renderCalendar(); }
+    btn.classList.remove('spinning');
   }
 
-  // 手动刷新按钮
   document.getElementById('refreshBtn').addEventListener('click', syncAndRender);
-
-  // 回到页面时自动刷新
+  document.getElementById('syncBar').addEventListener('click', syncAndRender);
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') syncAndRender();
   });
 
-  // 初始化
   renderCalendar();
-  renderEvents();
   syncAndRender();
 </script>
 </body>
