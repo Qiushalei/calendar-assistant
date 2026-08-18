@@ -388,8 +388,8 @@
     }
     .limit-tip.visible { display: block; }
 
-    /* ===== 悬浮设置按钮 ===== */
-    #settingsBtn {
+    /* ===== 悬浮刷新按钮 ===== */
+    #refreshBtn {
       position: fixed;
       bottom: 20px; right: 16px;
       width: 44px; height: 44px;
@@ -403,7 +403,9 @@
       z-index: 20;
       transition: transform 0.2s;
     }
-    #settingsBtn:active { transform: scale(0.92); }
+    #refreshBtn:active { transform: scale(0.92); }
+    #refreshBtn.spinning { animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
     /* ===== 配置弹窗 ===== */
     #configOverlay {
@@ -482,22 +484,7 @@
 </head>
 <body>
 
-<!-- 配置弹窗 -->
-<div id="configOverlay">
-  <div id="configBox">
-    <div class="drag-handle"></div>
-    <h2>☁️ 云同步设置</h2>
-    <p>输入 GitHub Token 和 Gist ID，所有设备自动同步。Token 只保存在本设备浏览器中，不会外传。</p>
-    <label>GitHub Token（需要 gist 权限）</label>
-    <input type="password" id="cfgToken" placeholder="gho_..." autocomplete="off" />
-    <label>Gist ID</label>
-    <input type="text" id="cfgGistId" placeholder="4d6a1cf954bb3525554b5d7ea4bb5e49" />
-    <div class="btn-row">
-      <button type="button" class="btn-secondary" id="cfgSkip">仅本地使用</button>
-      <button type="button" class="btn-primary" id="cfgSave">保存并同步 🐾</button>
-    </div>
-  </div>
-</div>
+<!-- 无需配置弹窗，Supabase 已内置 -->
 
 <!-- 顶部标题 -->
 <div class="app-header">
@@ -547,56 +534,17 @@
   <div class="limit-tip" id="limitTip">🐶 最多登记 5 条哦～</div>
 </div>
 
-<!-- 悬浮设置 -->
-<button type="button" id="settingsBtn" title="云同步设置">⚙️</button>
+<!-- 悬浮刷新按钮 -->
+<button type="button" id="refreshBtn" title="手动刷新同步">🔄</button>
 
 <script>
-  const CFG_TOKEN_KEY = 'cal_gist_token';
-  const CFG_GIST_KEY  = 'cal_gist_id';
-  const STORAGE_KEY   = 'calendar_events_v1';
-  const GIST_FILE     = 'calendar_data.json';
+  // ===== Supabase 配置（与情侣日历共用）=====
+  const SUPA_URL = 'https://tsppopxdtcqlzbjqsofx.supabase.co';
+  const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRzcHBvcHhkdGNxbHpianFzb2Z4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMTI4NjcsImV4cCI6MjEwMDg4ODg2N30.GNduXMm3pXAr-c-OhZN6aHxbwlmdEwX2n2XV7wGHX8Q';
+  const HEADERS  = { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' };
+  const TABLE    = `${SUPA_URL}/rest/v1/calendar_events`;
 
-  function getCfg() {
-    return {
-      token:  localStorage.getItem(CFG_TOKEN_KEY) || '',
-      gistId: localStorage.getItem(CFG_GIST_KEY)  || ''
-    };
-  }
-
-  const overlay   = document.getElementById('configOverlay');
-  const cfgToken  = document.getElementById('cfgToken');
-  const cfgGistId = document.getElementById('cfgGistId');
-
-  function openConfig() {
-    const c = getCfg();
-    cfgToken.value  = c.token;
-    cfgGistId.value = c.gistId;
-    overlay.style.display = 'flex';
-  }
-  function closeConfig() { overlay.style.display = 'none'; }
-
-  document.getElementById('cfgSave').addEventListener('click', () => {
-    const t = cfgToken.value.trim();
-    const g = cfgGistId.value.trim();
-    if (!t || !g) { alert('请填写 Token 和 Gist ID'); return; }
-    localStorage.setItem(CFG_TOKEN_KEY, t);
-    localStorage.setItem(CFG_GIST_KEY,  g);
-    closeConfig();
-    fetchFromGist().then(remote => {
-      if (remote) { data = remote; renderCalendar(); renderEvents(); }
-    });
-  });
-  document.getElementById('cfgSkip').addEventListener('click', closeConfig);
-  document.getElementById('settingsBtn').addEventListener('click', openConfig);
-
-  const cfg = getCfg();
-  if (!cfg.token || !cfg.gistId) {
-    cfgGistId.value = '4d6a1cf954bb3525554b5d7ea4bb5e49';
-  } else {
-    closeConfig();
-  }
-
-  // 同步状态
+  // ===== 同步状态 =====
   const syncBar  = document.getElementById('syncBar');
   const syncText = document.getElementById('syncText');
   function setSyncStatus(state, msg) {
@@ -604,72 +552,73 @@
     syncText.textContent = msg;
   }
 
-  // 点击同步状态栏手动刷新
-  syncBar.style.cursor = 'pointer';
-  syncBar.title = '点击手动刷新';
-  syncBar.addEventListener('click', () => {
-    fetchFromGist().then(remote => {
-      if (remote) { data = remote; renderCalendar(); renderEvents(); }
-    });
-  });
-
-  // Gist API — 拉取（始终以远端为准）
-  async function fetchFromGist() {
-    const { token, gistId } = getCfg();
-    if (!token || !gistId) { setSyncStatus('', '未配置同步'); return null; }
+  // ===== 从 Supabase 拉取所有事件，转为内存 data 对象 =====
+  async function fetchAll() {
     setSyncStatus('syncing', '同步中…');
     try {
-      const res = await fetch(`https://api.github.com/gists/${gistId}`, {
-        headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github+json' }
+      const res = await fetch(`${TABLE}?select=date_key,idx,content&order=date_key,idx`, {
+        headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` }
       });
-      if (res.status === 401) { setSyncStatus('error', 'Token 无效，请重新配置'); return null; }
-      if (res.status === 404) { setSyncStatus('error', 'Gist ID 不存在'); return null; }
-      if (!res.ok) { setSyncStatus('error', `同步失败 (${res.status})`); return null; }
-      const gist   = await res.json();
-      const raw    = gist.files[GIST_FILE]?.content || '{}';
-      const remote = JSON.parse(raw);
-      // 以远端为权威数据，覆盖本地
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(remote));
-      setSyncStatus('ok', '已同步 ✓ 点击刷新');
-      return remote;
+      if (!res.ok) throw new Error(res.status);
+      const rows = await res.json();
+      // 转换为 { "2026-08-18": ["事件1","事件2"], ... }
+      const obj = {};
+      rows.forEach(r => {
+        if (!obj[r.date_key]) obj[r.date_key] = [];
+        obj[r.date_key][r.idx] = r.content;
+      });
+      // 过滤空洞
+      Object.keys(obj).forEach(k => { obj[k] = obj[k].filter(Boolean); });
+      setSyncStatus('ok', '已同步 ✓');
+      return obj;
     } catch (e) {
-      setSyncStatus('error', '网络错误，点击重试');
+      setSyncStatus('error', `同步失败 (${e.message})`);
       return null;
     }
   }
 
-  // Gist API — 推送（立即写入，不防抖，确保不丢数据）
-  async function pushToGist(dataObj) {
-    const { token, gistId } = getCfg();
-    if (!token || !gistId) return;
+  // ===== 写入单条事件（upsert）=====
+  async function upsertEvent(dateKey, idx, content) {
     setSyncStatus('syncing', '保存中…');
-    try {
-      const res = await fetch(`https://api.github.com/gists/${gistId}`, {
-        method: 'PATCH',
-        headers: {
-          Authorization: `token ${token}`,
-          Accept: 'application/vnd.github+json',
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ files: { [GIST_FILE]: { content: JSON.stringify(dataObj) } } })
-      });
-      if (res.status === 401) { setSyncStatus('error', 'Token 无效'); return; }
-      if (!res.ok) { setSyncStatus('error', `保存失败 (${res.status})`); return; }
-      setSyncStatus('ok', '已保存 ✓ 点击刷新');
-    } catch {
-      setSyncStatus('error', '网络错误，数据仅在本地');
-    }
+    const res = await fetch(`${TABLE}`, {
+      method: 'POST',
+      headers: { ...HEADERS, 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+      body: JSON.stringify({ date_key: dateKey, idx, content, updated_at: new Date().toISOString() })
+    });
+    if (res.ok) { setSyncStatus('ok', '已保存 ✓'); }
+    else { setSyncStatus('error', `保存失败 (${res.status})`); }
   }
 
-  function loadLocal() {
-    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }
-    catch { return {}; }
+  // ===== 删除单条事件 =====
+  async function deleteEvent(dateKey, idx) {
+    setSyncStatus('syncing', '删除中…');
+    // 删除指定行
+    await fetch(`${TABLE}?date_key=eq.${encodeURIComponent(dateKey)}&idx=eq.${idx}`, {
+      method: 'DELETE',
+      headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` }
+    });
+    // 删除后重新整理该日期的 idx（保持连续）
+    const events = data[dateKey] || [];
+    // 用批量 upsert 重写该日期所有事件
+    await rewriteDay(dateKey, events);
+    setSyncStatus('ok', '已同步 ✓');
   }
 
-  // 保存：先写本地，再推送远端
-  async function saveData(dataObj) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(dataObj));
-    await pushToGist(dataObj);
+  // ===== 重写某一天所有事件（删除旧的再插入新的）=====
+  async function rewriteDay(dateKey, events) {
+    // 先删除该日期所有行
+    await fetch(`${TABLE}?date_key=eq.${encodeURIComponent(dateKey)}`, {
+      method: 'DELETE',
+      headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` }
+    });
+    if (!events || events.length === 0) return;
+    // 重新插入
+    const rows = events.map((c, i) => ({ date_key: dateKey, idx: i, content: c, updated_at: new Date().toISOString() }));
+    await fetch(`${TABLE}`, {
+      method: 'POST',
+      headers: { ...HEADERS, 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+      body: JSON.stringify(rows)
+    });
   }
 
   function dateKey(year, month, day) {
@@ -680,9 +629,7 @@
   let curYear  = today.getFullYear();
   let curMonth = today.getMonth();
   let selectedDate = dateKey(today.getFullYear(), today.getMonth(), today.getDate());
-  // 先用本地数据显示，等远端拉取后覆盖
-  let data = loadLocal();
-  let syncReady = false; // 远端数据是否已加载
+  let data = {};
 
   // ===== 日历渲染（周一=0偏移）=====
   function renderCalendar() {
@@ -835,7 +782,7 @@
       if (!data[selectedDate]) data[selectedDate] = [];
       data[selectedDate][idx] = newVal;
       renderCalendar(); renderEvents();
-      await saveData(data);
+      await upsertEvent(selectedDate, idx, newVal);
     };
 
     saveBtn.addEventListener('click', doSave);
@@ -857,7 +804,8 @@
       data[selectedDate].splice(idx, 1);
       if (data[selectedDate].length === 0) delete data[selectedDate];
       renderCalendar(); renderEvents();
-      await saveData(data);
+      // 重写该天（删除 + 重新插入保持 idx 连续）
+      await rewriteDay(selectedDate, data[selectedDate] || []);
     });
 
     li.appendChild(idxSpan); li.appendChild(textSpan);
@@ -873,10 +821,11 @@
     if (!text) return;
     if (!data[selectedDate]) data[selectedDate] = [];
     if (data[selectedDate].length >= 5) return;
+    const idx = data[selectedDate].length;
     data[selectedDate].push(text);
     input.value = '';
     renderCalendar(); renderEvents();
-    await saveData(data);
+    await upsertEvent(selectedDate, idx, text);
     input.focus();
   }
 
@@ -894,32 +843,31 @@
     renderCalendar();
   });
 
-  // 先用本地缓存快速渲染
-  renderCalendar();
-  renderEvents();
-
-  // 若已配置，立即从远端拉取最新数据（以远端为准）
-  if (cfg.token && cfg.gistId) {
-    fetchFromGist().then(remote => {
-      if (remote) {
-        data = remote;
-        renderCalendar();
-        renderEvents();
-      }
-    });
+  // 从 Supabase 拉取数据并渲染
+  async function syncAndRender() {
+    const refreshBtn = document.getElementById('refreshBtn');
+    if (refreshBtn) refreshBtn.classList.add('spinning');
+    const remote = await fetchAll();
+    if (remote !== null) {
+      data = remote;
+      renderCalendar();
+      renderEvents();
+    }
+    if (refreshBtn) refreshBtn.classList.remove('spinning');
   }
 
-  // 页面重新获得焦点时（切换标签页/回到页面）自动刷新远端
+  // 手动刷新按钮
+  document.getElementById('refreshBtn').addEventListener('click', syncAndRender);
+
+  // 回到页面时自动刷新
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') {
-      const c = getCfg();
-      if (c.token && c.gistId) {
-        fetchFromGist().then(remote => {
-          if (remote) { data = remote; renderCalendar(); renderEvents(); }
-        });
-      }
-    }
+    if (document.visibilityState === 'visible') syncAndRender();
   });
+
+  // 初始化
+  renderCalendar();
+  renderEvents();
+  syncAndRender();
 </script>
 </body>
 </html>
