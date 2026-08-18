@@ -5,120 +5,135 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
   <title>🐶 玉桂狗日历</title>
   <style>
-    /* ===== 基础 & 字体 ===== */
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
+    /* ===== 蓝白格纹背景 ===== */
     body {
       font-family: "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", Arial, sans-serif;
-      background: #fff0f5;
       min-height: 100dvh;
       display: flex;
       flex-direction: column;
       overflow-x: hidden;
+      background-color: #d6eef8;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.55) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.55) 1px, transparent 1px);
+      background-size: 28px 28px;
     }
 
-    /* ===== 顶部标题栏 ===== */
+    /* ===== 顶部标题 ===== */
     .app-header {
-      background: linear-gradient(135deg, #ffb7c5 0%, #ffd6e0 100%);
-      padding: 12px 16px 8px;
+      background: linear-gradient(135deg, #a8d8f0 0%, #c5e8f8 60%, #ddf0fb 100%);
+      padding: 10px 16px 8px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      box-shadow: 0 2px 8px rgba(255,150,170,0.25);
+      box-shadow: 0 2px 10px rgba(100,180,230,0.3);
       position: sticky;
       top: 0;
       z-index: 10;
+      border-bottom: 2px solid rgba(255,255,255,0.7);
     }
 
     .app-title {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
     }
 
-    .app-title .mascot { font-size: 28px; line-height: 1; }
+    .header-deco {
+      font-size: 13px;
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
 
     .app-title h1 {
-      font-size: 18px;
-      font-weight: 700;
-      color: #c0436a;
+      font-size: 17px;
+      font-weight: 800;
+      color: #4a90b8;
       letter-spacing: 1px;
     }
 
     #syncBar {
       display: flex;
       align-items: center;
-      gap: 5px;
-      font-size: 11px;
-      color: #d47a90;
+      gap: 4px;
+      font-size: 10px;
+      color: #7ab8d4;
     }
     #syncBar .sdot {
-      width: 7px; height: 7px; border-radius: 50%; background: #ddd; flex-shrink: 0;
+      width: 6px; height: 6px; border-radius: 50%; background: #b0d8ec; flex-shrink: 0;
     }
-    #syncBar.syncing .sdot { background: #ffaa00; animation: pulse 1s infinite; }
-    #syncBar.ok .sdot { background: #6dcc6d; }
-    #syncBar.error .sdot { background: #ff6b6b; }
+    #syncBar.syncing .sdot { background: #f9c74f; animation: pulse 1s infinite; }
+    #syncBar.ok .sdot { background: #90d468; }
+    #syncBar.error .sdot { background: #f4827a; }
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
     /* ===== 月份导航 ===== */
     .month-nav {
-      background: #ffe0ea;
+      background: rgba(255,255,255,0.6);
       display: flex;
       align-items: center;
       justify-content: space-between;
       padding: 8px 16px;
+      border-bottom: 1.5px solid rgba(168,216,240,0.5);
     }
 
     .month-nav button {
-      background: #ffb7c5;
-      border: none;
+      background: #a8d8f0;
+      border: 2px solid #fff;
       border-radius: 50%;
-      width: 32px; height: 32px;
-      font-size: 18px;
-      color: #c0436a;
+      width: 34px; height: 34px;
+      font-size: 20px;
+      color: #4a90b8;
       cursor: pointer;
       display: flex; align-items: center; justify-content: center;
-      transition: background 0.2s;
-      box-shadow: 0 2px 4px rgba(192,67,106,0.2);
+      font-weight: 700;
+      box-shadow: 0 2px 6px rgba(100,180,230,0.3);
+      transition: transform 0.15s;
     }
-    .month-nav button:active { background: #ff96b0; transform: scale(0.95); }
+    .month-nav button:active { transform: scale(0.92); }
 
     .month-title {
-      font-size: 17px;
-      font-weight: 700;
-      color: #c0436a;
-      letter-spacing: 1px;
+      font-size: 16px;
+      font-weight: 800;
+      color: #4a90b8;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
 
-    /* ===== 星期行 ===== */
+    /* ===== 星期行（周一开始）===== */
     .weekdays {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
-      background: #ffd6e0;
-      padding: 4px 0;
+      background: rgba(168,216,240,0.35);
+      padding: 5px 0 3px;
+      border-bottom: 1px solid rgba(168,216,240,0.4);
     }
     .weekdays span {
       text-align: center;
       font-size: 11px;
       font-weight: 700;
-      color: #c0436a;
-      padding: 3px 0;
+      color: #4a90b8;
+      padding: 2px 0;
     }
-    .weekdays span:first-child,
-    .weekdays span:last-child { color: #e8608a; }
+    /* 周六周日特殊色 */
+    .weekdays span.wkend { color: #f4827a; }
 
     /* ===== 日期网格 ===== */
     .days-grid {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
       gap: 1px;
-      background: #ffc0d0;
+      background: rgba(168,216,240,0.3);
       flex: 1;
     }
 
     .day-cell {
-      background: #fff8fb;
-      min-height: 80px;
+      background: rgba(255,255,255,0.75);
+      min-height: 76px;
       display: flex;
       flex-direction: column;
       align-items: stretch;
@@ -127,103 +142,105 @@
       overflow: hidden;
       position: relative;
     }
+    .day-cell:active { background: rgba(168,216,240,0.4); }
+    .day-cell.empty {
+      background: rgba(255,255,255,0.3);
+      cursor: default;
+    }
 
-    .day-cell:active { background: #ffe8f0; }
-    .day-cell.empty { background: #fff0f5; cursor: default; }
-
-    /* 日期数字区 */
+    /* 日期数字 */
     .day-num-wrap {
       display: flex;
       justify-content: center;
-      padding: 4px 2px 2px;
+      padding: 5px 2px 2px;
     }
 
     .day-num {
-      font-size: 13px;
-      font-weight: 600;
-      color: #555;
-      width: 24px; height: 24px;
+      font-size: 14px;
+      font-weight: 700;
+      color: #4a7fa0;
+      width: 26px; height: 26px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
+      line-height: 1;
     }
 
     /* 今天 */
     .day-cell.today .day-num {
-      background: #ffb7c5;
-      color: #c0436a;
-      font-weight: 800;
+      background: #a8d8f0;
+      color: #1e6a96;
+      font-weight: 900;
+      box-shadow: 0 0 0 2px #fff, 0 0 0 4px #a8d8f0;
     }
 
-    /* 颜色等级（背景色条） */
-    .day-cell.level-1 { background: #f0fdf0; }
-    .day-cell.level-2 { background: #fffbf0; }
+    /* 颜色等级 */
+    .day-cell.level-1 { background: rgba(210,242,210,0.85); }
+    .day-cell.level-2 { background: rgba(255,244,210,0.85); }
     .day-cell.level-3,
     .day-cell.level-4,
-    .day-cell.level-5 { background: #fff5f5; }
+    .day-cell.level-5 { background: rgba(255,220,220,0.85); }
 
-    /* 日期数字随等级变色 */
-    .day-cell.level-1 .day-num { color: #389e0d; }
-    .day-cell.level-2 .day-num { color: #d46b08; }
+    .day-cell.level-1 .day-num { color: #3a8a3a; }
+    .day-cell.level-2 .day-num { color: #b07800; }
     .day-cell.level-3 .day-num,
     .day-cell.level-4 .day-num,
-    .day-cell.level-5 .day-num { color: #cf1322; }
+    .day-cell.level-5 .day-num { color: #c0392b; }
 
-    /* 今天 + 等级 */
-    .day-cell.today.level-1 .day-num { background: #b7eb8f; color: #135200; }
-    .day-cell.today.level-2 .day-num { background: #ffe58f; color: #874d00; }
+    .day-cell.today.level-1 .day-num { background: #7dda7d; color: #145214; }
+    .day-cell.today.level-2 .day-num { background: #ffd95a; color: #7a5000; }
     .day-cell.today.level-3 .day-num,
     .day-cell.today.level-4 .day-num,
-    .day-cell.today.level-5 .day-num { background: #ffadb7; color: #820014; }
+    .day-cell.today.level-5 .day-num { background: #ff9999; color: #7a0000; }
 
-    /* 选中框 */
+    /* 选中 */
     .day-cell.selected {
-      outline: 2px solid #ff7eb3;
+      outline: 2.5px solid #5bb8e8;
       outline-offset: -2px;
       z-index: 1;
     }
 
-    /* 日期内事件文字 */
+    /* 格内事件标签 */
     .cell-events {
       padding: 1px 3px 3px;
       display: flex;
       flex-direction: column;
-      gap: 1px;
+      gap: 2px;
       overflow: hidden;
     }
 
     .cell-event-tag {
-      font-size: 9px;
-      line-height: 1.3;
-      padding: 1px 3px;
-      border-radius: 3px;
+      font-size: 10px;
+      line-height: 1.35;
+      padding: 1px 4px;
+      border-radius: 4px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
       color: #fff;
-      font-weight: 500;
+      font-weight: 600;
     }
 
-    .day-cell.level-1 .cell-event-tag { background: #73d13d; }
-    .day-cell.level-2 .cell-event-tag { background: #ffa940; }
+    .day-cell.level-1 .cell-event-tag { background: #52b552; }
+    .day-cell.level-2 .cell-event-tag { background: #e09020; }
     .day-cell.level-3 .cell-event-tag,
     .day-cell.level-4 .cell-event-tag,
-    .day-cell.level-5 .cell-event-tag { background: #ff7875; }
+    .day-cell.level-5 .cell-event-tag { background: #e05050; }
 
     .cell-more {
       font-size: 9px;
-      color: #aaa;
-      text-align: center;
-      padding-bottom: 1px;
+      color: #90b0c0;
+      text-align: right;
+      padding-right: 4px;
     }
 
-    /* ===== 事件详情面板 ===== */
+    /* ===== 事件面板 ===== */
     .event-panel {
-      background: #fff8fb;
-      border-top: 2px solid #ffd6e0;
-      padding: 14px 16px 80px; /* 底部留出设置按钮空间 */
+      background: rgba(255,255,255,0.82);
+      border-top: 2px solid rgba(168,216,240,0.6);
+      padding: 14px 14px 86px;
     }
 
     .panel-header {
@@ -235,8 +252,8 @@
 
     .panel-title {
       font-size: 14px;
-      font-weight: 700;
-      color: #c0436a;
+      font-weight: 800;
+      color: #4a90b8;
       display: flex;
       align-items: center;
       gap: 6px;
@@ -244,32 +261,27 @@
 
     .date-badge {
       font-size: 11px;
-      background: #ffb7c5;
-      color: #c0436a;
+      background: #a8d8f0;
+      color: #1e6a96;
       padding: 2px 10px;
       border-radius: 20px;
-      font-weight: 600;
+      font-weight: 700;
+      border: 1.5px solid #fff;
     }
 
-    /* 色标说明 */
     .legend {
       display: flex;
-      gap: 10px;
+      gap: 8px;
       align-items: center;
     }
     .legend-item {
-      display: flex;
-      align-items: center;
-      gap: 3px;
-      font-size: 10px;
-      color: #c08090;
+      display: flex; align-items: center; gap: 3px;
+      font-size: 10px; color: #7ab8d4; font-weight: 600;
     }
-    .ldot {
-      width: 8px; height: 8px; border-radius: 50%;
-    }
-    .ldot-g { background: #73d13d; }
-    .ldot-y { background: #ffa940; }
-    .ldot-r { background: #ff7875; }
+    .ldot { width: 8px; height: 8px; border-radius: 50%; }
+    .ldot-g { background: #52b552; }
+    .ldot-y { background: #e09020; }
+    .ldot-r { background: #e05050; }
 
     /* 事件列表 */
     .event-list { list-style: none; margin-bottom: 12px; }
@@ -278,125 +290,115 @@
       display: flex;
       align-items: center;
       gap: 8px;
-      padding: 9px 10px;
-      border-radius: 12px;
-      background: #fff;
-      margin-bottom: 6px;
-      border: 1.5px solid #ffd6e0;
-      box-shadow: 0 1px 4px rgba(255,150,170,0.1);
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.9);
+      margin-bottom: 7px;
+      border: 1.5px solid rgba(168,216,240,0.5);
+      box-shadow: 0 1px 5px rgba(100,180,230,0.1);
     }
 
     .event-index {
-      font-size: 11px;
-      color: #ffb7c5;
-      font-weight: 700;
-      min-width: 16px;
+      font-size: 12px;
+      color: #a8d8f0;
+      font-weight: 800;
+      min-width: 18px;
     }
 
     .event-text {
       flex: 1;
       font-size: 14px;
-      color: #444;
+      color: #3a6a88;
       word-break: break-all;
       line-height: 1.4;
+      font-weight: 500;
     }
     .event-text.editing { display: none; }
 
     .event-edit-input {
       flex: 1;
       font-size: 14px;
-      border: 1.5px solid #ffb7c5;
-      border-radius: 8px;
-      padding: 3px 8px;
+      border: 1.5px solid #a8d8f0;
+      border-radius: 10px;
+      padding: 4px 10px;
       outline: none;
       display: none;
       font-family: inherit;
-      color: #444;
+      color: #3a6a88;
+      background: #f0f9ff;
     }
     .event-edit-input.editing { display: block; }
 
     .btn-icon {
-      background: none;
-      border: none;
-      cursor: pointer;
-      font-size: 16px;
-      padding: 2px 4px;
-      border-radius: 6px;
-      transition: background 0.15s;
-      line-height: 1;
+      background: none; border: none; cursor: pointer;
+      font-size: 16px; padding: 2px 4px;
+      border-radius: 8px; transition: background 0.15s; line-height: 1;
     }
-    .btn-icon:active { background: #ffe0ea; }
+    .btn-icon:active { background: rgba(168,216,240,0.4); }
 
     .no-events {
       text-align: center;
-      color: #ffb7c5;
+      color: #a8d8f0;
       font-size: 13px;
       padding: 16px 0 8px;
+      font-weight: 600;
     }
 
     /* 添加事件 */
-    .add-event-row {
-      display: flex;
-      gap: 8px;
-      margin-top: 4px;
-    }
+    .add-event-row { display: flex; gap: 8px; margin-top: 4px; }
 
     .add-event-row input {
       flex: 1;
-      border: 2px solid #ffd6e0;
+      border: 2px solid rgba(168,216,240,0.7);
       border-radius: 24px;
       padding: 10px 16px;
       font-size: 14px;
       outline: none;
-      background: #fff;
+      background: rgba(255,255,255,0.9);
       font-family: inherit;
-      color: #444;
+      color: #3a6a88;
       transition: border-color 0.2s;
     }
-    .add-event-row input::placeholder { color: #ffb7c5; }
-    .add-event-row input:focus { border-color: #ff7eb3; }
+    .add-event-row input::placeholder { color: #b8ddf0; }
+    .add-event-row input:focus { border-color: #5bb8e8; }
 
     .add-event-row button {
-      background: linear-gradient(135deg, #ff96b0, #ffb7c5);
+      background: linear-gradient(135deg, #5bb8e8, #a8d8f0);
       color: #fff;
       border: none;
       border-radius: 24px;
       padding: 10px 18px;
       font-size: 14px;
-      font-weight: 700;
+      font-weight: 800;
       cursor: pointer;
-      transition: transform 0.15s, box-shadow 0.15s;
       font-family: inherit;
-      box-shadow: 0 2px 8px rgba(255,110,160,0.3);
+      box-shadow: 0 2px 8px rgba(91,184,232,0.4);
+      transition: transform 0.15s;
     }
-    .add-event-row button:active { transform: scale(0.96); }
+    .add-event-row button:active { transform: scale(0.95); }
     .add-event-row button:disabled {
-      background: #ffd6e0;
+      background: #c5e8f8;
       box-shadow: none;
       cursor: not-allowed;
     }
 
     .limit-tip {
-      font-size: 11px;
-      color: #ff7eb3;
-      margin-top: 6px;
-      text-align: center;
-      display: none;
+      font-size: 11px; color: #5bb8e8;
+      margin-top: 6px; text-align: center; display: none;
     }
     .limit-tip.visible { display: block; }
 
     /* ===== 悬浮设置按钮 ===== */
     #settingsBtn {
       position: fixed;
-      bottom: 20px;
-      right: 20px;
+      bottom: 20px; right: 16px;
       width: 44px; height: 44px;
       border-radius: 50%;
-      background: linear-gradient(135deg, #ffb7c5, #ffd6e0);
-      border: none;
+      background: linear-gradient(135deg, #a8d8f0, #c5e8f8);
+      border: 2px solid #fff;
       font-size: 20px;
       cursor: pointer;
-      box-shadow: 0 3px 12px rgba(255,110,160,0.35);
+      box-shadow: 0 3px 12px rgba(91,184,232,0.4);
       display: flex; align-items: center; justify-content: center;
       z-index: 20;
       transition: transform 0.2s;
@@ -406,66 +408,56 @@
     /* ===== 配置弹窗 ===== */
     #configOverlay {
       position: fixed; inset: 0;
-      background: rgba(255,192,208,0.5);
-      backdrop-filter: blur(4px);
+      background: rgba(168,216,240,0.45);
+      backdrop-filter: blur(6px);
       display: flex; align-items: flex-end; justify-content: center;
       z-index: 100;
     }
-
     #configBox {
-      background: #fff8fb;
+      background: linear-gradient(180deg, #eaf6fd 0%, #fff 100%);
       border-radius: 24px 24px 0 0;
-      padding: 24px 20px 36px;
-      width: 100%;
-      max-width: 520px;
-      box-shadow: 0 -4px 24px rgba(255,110,160,0.2);
+      padding: 20px 20px 36px;
+      width: 100%; max-width: 520px;
+      box-shadow: 0 -4px 24px rgba(91,184,232,0.2);
       animation: slideUp 0.25s ease;
     }
-    @keyframes slideUp { from { transform: translateY(60px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-
-    #configBox .drag-handle {
+    @keyframes slideUp {
+      from { transform: translateY(60px); opacity: 0; }
+      to   { transform: translateY(0);    opacity: 1; }
+    }
+    .drag-handle {
       width: 40px; height: 4px;
-      background: #ffd6e0;
+      background: #a8d8f0;
       border-radius: 2px;
-      margin: 0 auto 18px;
+      margin: 0 auto 16px;
     }
-
     #configBox h2 {
-      font-size: 17px; font-weight: 700;
-      color: #c0436a; margin-bottom: 6px;
-      display: flex; align-items: center; gap: 6px;
+      font-size: 16px; font-weight: 800;
+      color: #4a90b8; margin-bottom: 6px;
     }
-
     #configBox p {
-      font-size: 13px; color: #c08090;
-      margin-bottom: 16px; line-height: 1.6;
+      font-size: 12px; color: #7ab8d4;
+      margin-bottom: 14px; line-height: 1.6;
     }
-
     #configBox label {
-      font-size: 12px; color: #c0436a;
-      font-weight: 600; display: block;
+      font-size: 11px; color: #4a90b8;
+      font-weight: 700; display: block;
       margin-bottom: 4px; margin-top: 10px;
     }
-
     #configBox input {
       width: 100%;
-      border: 2px solid #ffd6e0;
+      border: 2px solid #a8d8f0;
       border-radius: 12px;
       padding: 10px 14px;
-      font-size: 13px;
-      outline: none;
-      font-family: monospace;
-      color: #444;
-      background: #fff;
+      font-size: 13px; outline: none;
+      font-family: monospace; color: #3a6a88;
+      background: #f0f9ff;
       transition: border-color 0.2s;
     }
-    #configBox input:focus { border-color: #ff7eb3; }
-
+    #configBox input:focus { border-color: #5bb8e8; }
     #configBox .btn-row {
-      display: flex; gap: 10px;
-      margin-top: 18px;
+      display: flex; gap: 10px; margin-top: 16px;
     }
-
     #configBox button {
       flex: 1; border: none; border-radius: 24px;
       padding: 12px; font-size: 14px; font-weight: 700;
@@ -473,14 +465,18 @@
       transition: transform 0.15s;
     }
     #configBox button:active { transform: scale(0.97); }
-
     #configBox .btn-primary {
-      background: linear-gradient(135deg, #ff96b0, #ffb7c5);
+      background: linear-gradient(135deg, #5bb8e8, #a8d8f0);
       color: #fff;
-      box-shadow: 0 2px 8px rgba(255,110,160,0.3);
+      box-shadow: 0 2px 8px rgba(91,184,232,0.35);
     }
     #configBox .btn-secondary {
-      background: #ffe0ea; color: #c0436a;
+      background: #e0f4fc; color: #4a90b8;
+    }
+
+    /* ===== 装饰元素 ===== */
+    .header-decos {
+      display: flex; gap: 2px; font-size: 16px;
     }
   </style>
 </head>
@@ -491,7 +487,7 @@
   <div id="configBox">
     <div class="drag-handle"></div>
     <h2>☁️ 云同步设置</h2>
-    <p>输入 GitHub Token 和 Gist ID，所有设备自动同步数据。Token 只保存在本设备浏览器中。</p>
+    <p>输入 GitHub Token 和 Gist ID，所有设备自动同步。Token 只保存在本设备浏览器中，不会外传。</p>
     <label>GitHub Token（需要 gist 权限）</label>
     <input type="password" id="cfgToken" placeholder="gho_..." autocomplete="off" />
     <label>Gist ID</label>
@@ -506,29 +502,30 @@
 <!-- 顶部标题 -->
 <div class="app-header">
   <div class="app-title">
-    <span class="mascot">🐶</span>
+    <span style="font-size:26px;line-height:1">🐶</span>
     <h1>玉桂狗日历</h1>
+    <span class="header-decos">🍒🎀</span>
   </div>
   <div id="syncBar"><div class="sdot"></div><span id="syncText">未同步</span></div>
 </div>
 
 <!-- 月份导航 -->
 <div class="month-nav">
-  <button type="button" id="prevMonth" title="上个月">‹</button>
-  <span class="month-title" id="monthTitle"></span>
-  <button type="button" id="nextMonth" title="下个月">›</button>
+  <button type="button" id="prevMonth">‹</button>
+  <span class="month-title">🩵 <span id="monthTitle"></span> 🩵</span>
+  <button type="button" id="nextMonth">›</button>
 </div>
 
-<!-- 星期行 -->
+<!-- 星期行（周一开始）-->
 <div class="weekdays">
-  <span>日</span><span>一</span><span>二</span><span>三</span>
-  <span>四</span><span>五</span><span>六</span>
+  <span>一</span><span>二</span><span>三</span><span>四</span>
+  <span>五</span><span class="wkend">六</span><span class="wkend">日</span>
 </div>
 
 <!-- 日期网格 -->
 <div class="days-grid" id="daysGrid"></div>
 
-<!-- 事件详情面板 -->
+<!-- 事件面板 -->
 <div class="event-panel">
   <div class="panel-header">
     <div class="panel-title">
@@ -544,13 +541,13 @@
   <ul class="event-list" id="eventList"></ul>
 
   <div class="add-event-row">
-    <input type="text" id="newEventInput" placeholder="记点什么呀～" maxlength="100" />
+    <input type="text" id="newEventInput" placeholder="🐶 记点什么呀～" maxlength="100" />
     <button type="button" id="addEventBtn">添加</button>
   </div>
   <div class="limit-tip" id="limitTip">🐶 最多登记 5 条哦～</div>
 </div>
 
-<!-- 悬浮设置按钮 -->
+<!-- 悬浮设置 -->
 <button type="button" id="settingsBtn" title="云同步设置">⚙️</button>
 
 <script>
@@ -566,7 +563,6 @@
     };
   }
 
-  // ===== 配置弹窗 =====
   const overlay   = document.getElementById('configOverlay');
   const cfgToken  = document.getElementById('cfgToken');
   const cfgGistId = document.getElementById('cfgGistId');
@@ -600,7 +596,7 @@
     closeConfig();
   }
 
-  // ===== 同步状态 =====
+  // 同步状态
   const syncBar  = document.getElementById('syncBar');
   const syncText = document.getElementById('syncText');
   function setSyncStatus(state, msg) {
@@ -608,7 +604,7 @@
     syncText.textContent = msg;
   }
 
-  // ===== Gist API =====
+  // Gist API
   async function fetchFromGist() {
     const { token, gistId } = getCfg();
     if (!token || !gistId) { setSyncStatus('', '未同步'); return null; }
@@ -655,7 +651,6 @@
     }, 600);
   }
 
-  // ===== 本地存储 =====
   function loadLocal() {
     try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }
     catch { return {}; }
@@ -669,23 +664,24 @@
     return `${year}-${String(month + 1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
   }
 
-  // ===== 状态 =====
   const today = new Date();
   let curYear  = today.getFullYear();
   let curMonth = today.getMonth();
   let selectedDate = dateKey(today.getFullYear(), today.getMonth(), today.getDate());
   let data = loadLocal();
 
-  // ===== 日历渲染 =====
+  // ===== 日历渲染（周一=0偏移）=====
   function renderCalendar() {
     document.getElementById('monthTitle').textContent = `${curYear} 年 ${curMonth + 1} 月`;
     const grid = document.getElementById('daysGrid');
     grid.innerHTML = '';
 
-    const firstDay    = new Date(curYear, curMonth, 1).getDay();
+    const firstDow    = new Date(curYear, curMonth, 1).getDay(); // 0=Sun
+    // 周一为第一列：Sun(0)->6, Mon(1)->0, Tue(2)->1 ...
+    const offset      = (firstDow + 6) % 7;
     const daysInMonth = new Date(curYear, curMonth + 1, 0).getDate();
 
-    for (let i = 0; i < firstDay; i++) {
+    for (let i = 0; i < offset; i++) {
       const empty = document.createElement('div');
       empty.className = 'day-cell empty';
       grid.appendChild(empty);
@@ -717,11 +713,11 @@
       numWrap.appendChild(numEl);
       cell.appendChild(numWrap);
 
-      // 格内事件文字（最多显示3条，多余显示 +N）
+      // 格内事件（最多2条 + +N）
       if (count > 0) {
         const tagsWrap = document.createElement('div');
         tagsWrap.className = 'cell-events';
-        const showMax = 3;
+        const showMax = 2;
         events.slice(0, showMax).forEach(text => {
           const tag = document.createElement('div');
           tag.className = 'cell-event-tag';
@@ -731,7 +727,7 @@
         if (count > showMax) {
           const more = document.createElement('div');
           more.className = 'cell-more';
-          more.textContent = `+${count - showMax}`;
+          more.textContent = `+${count - showMax} 条`;
           tagsWrap.appendChild(more);
         }
         cell.appendChild(tagsWrap);
@@ -769,9 +765,8 @@
       events.forEach((text, idx) => list.appendChild(createEventItem(text, idx)));
     }
 
-    const isFull = events.length >= 5;
-    addBtn.disabled = isFull;
-    limitTip.classList.toggle('visible', isFull);
+    addBtn.disabled = events.length >= 5;
+    limitTip.classList.toggle('visible', events.length >= 5);
   }
 
   function createEventItem(text, idx) {
@@ -793,30 +788,22 @@
     editInput.maxLength = 100;
 
     const editBtn = document.createElement('button');
-    editBtn.className = 'btn-icon';
-    editBtn.type = 'button';
-    editBtn.title = '编辑';
-    editBtn.textContent = '✏️';
+    editBtn.className = 'btn-icon'; editBtn.type = 'button';
+    editBtn.title = '编辑'; editBtn.textContent = '✏️';
 
     const saveBtn = document.createElement('button');
-    saveBtn.className = 'btn-icon';
-    saveBtn.type = 'button';
-    saveBtn.title = '保存';
-    saveBtn.textContent = '✅';
+    saveBtn.className = 'btn-icon'; saveBtn.type = 'button';
+    saveBtn.title = '保存'; saveBtn.textContent = '✅';
     saveBtn.style.display = 'none';
 
     const cancelBtn = document.createElement('button');
-    cancelBtn.className = 'btn-icon';
-    cancelBtn.type = 'button';
-    cancelBtn.title = '取消';
-    cancelBtn.textContent = '❌';
+    cancelBtn.className = 'btn-icon'; cancelBtn.type = 'button';
+    cancelBtn.title = '取消'; cancelBtn.textContent = '❌';
     cancelBtn.style.display = 'none';
 
     const delBtn = document.createElement('button');
-    delBtn.className = 'btn-icon';
-    delBtn.type = 'button';
-    delBtn.title = '删除';
-    delBtn.textContent = '🗑️';
+    delBtn.className = 'btn-icon'; delBtn.type = 'button';
+    delBtn.title = '删除'; delBtn.textContent = '🗑️';
 
     editBtn.addEventListener('click', () => {
       textSpan.classList.add('editing');
@@ -825,8 +812,7 @@
       delBtn.style.display = 'none';
       saveBtn.style.display = '';
       cancelBtn.style.display = '';
-      editInput.focus();
-      editInput.select();
+      editInput.focus(); editInput.select();
     });
 
     const doSave = () => {
@@ -834,9 +820,7 @@
       if (!newVal) { alert('事件内容不能为空哦'); return; }
       if (!data[selectedDate]) data[selectedDate] = [];
       data[selectedDate][idx] = newVal;
-      saveData(data);
-      renderCalendar();
-      renderEvents();
+      saveData(data); renderCalendar(); renderEvents();
     };
 
     saveBtn.addEventListener('click', doSave);
@@ -849,32 +833,24 @@
       textSpan.classList.remove('editing');
       editInput.classList.remove('editing');
       editInput.value = text;
-      editBtn.style.display = '';
-      delBtn.style.display = '';
-      saveBtn.style.display = 'none';
-      cancelBtn.style.display = 'none';
+      editBtn.style.display = ''; delBtn.style.display = '';
+      saveBtn.style.display = 'none'; cancelBtn.style.display = 'none';
     });
 
     delBtn.addEventListener('click', () => {
       if (!data[selectedDate]) return;
       data[selectedDate].splice(idx, 1);
       if (data[selectedDate].length === 0) delete data[selectedDate];
-      saveData(data);
-      renderCalendar();
-      renderEvents();
+      saveData(data); renderCalendar(); renderEvents();
     });
 
-    li.appendChild(idxSpan);
-    li.appendChild(textSpan);
-    li.appendChild(editInput);
-    li.appendChild(editBtn);
-    li.appendChild(saveBtn);
-    li.appendChild(cancelBtn);
+    li.appendChild(idxSpan); li.appendChild(textSpan);
+    li.appendChild(editInput); li.appendChild(editBtn);
+    li.appendChild(saveBtn); li.appendChild(cancelBtn);
     li.appendChild(delBtn);
     return li;
   }
 
-  // ===== 添加事件 =====
   function addEvent() {
     const input = document.getElementById('newEventInput');
     const text  = input.value.trim();
@@ -882,11 +858,8 @@
     if (!data[selectedDate]) data[selectedDate] = [];
     if (data[selectedDate].length >= 5) return;
     data[selectedDate].push(text);
-    saveData(data);
-    input.value = '';
-    renderCalendar();
-    renderEvents();
-    input.focus();
+    saveData(data); input.value = '';
+    renderCalendar(); renderEvents(); input.focus();
   }
 
   document.getElementById('addEventBtn').addEventListener('click', addEvent);
@@ -894,7 +867,6 @@
     if (e.key === 'Enter') addEvent();
   });
 
-  // ===== 月份切换 =====
   document.getElementById('prevMonth').addEventListener('click', () => {
     if (--curMonth < 0) { curMonth = 11; curYear--; }
     renderCalendar();
@@ -904,7 +876,6 @@
     renderCalendar();
   });
 
-  // ===== 初始化 =====
   renderCalendar();
   renderEvents();
 
